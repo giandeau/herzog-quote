@@ -499,7 +499,7 @@
         setSliderProgress(scaleEl);
 
         const built = buildQuote(scale);
-        state.quote = built.quote;
+        state.quote = built.quote.replace(/\bendurance\b/g, '“endurance”');
 
         state.bgUrl = pickNonRepeating(imageUrls, "bgUrl", 2);
         state.font = pickNonRepeating(fontChoices, "font", 2);
