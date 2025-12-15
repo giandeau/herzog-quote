@@ -352,7 +352,7 @@
         "as time continues without concern for our explanations.",
         "so meaning dissolves, leaving only the habit of belief.",
         "while the universe remains unmoved by our brief insistence.",
-        "and still we call this endurance, as if it were a virtue."
+        "and still we call this “endurance,” as if it were a virtue."
       ];
 
       const history = {
@@ -499,7 +499,7 @@
         setSliderProgress(scaleEl);
 
         const built = buildQuote(scale);
-        state.quote = built.quote.replace(/\bendurance\b/g, '“endurance”');
+        state.quote = built.quote;
 
         state.bgUrl = pickNonRepeating(imageUrls, "bgUrl", 2);
         state.font = pickNonRepeating(fontChoices, "font", 2);
