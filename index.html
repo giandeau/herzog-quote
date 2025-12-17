@@ -6,15 +6,15 @@
   <title>Werner Herzog Quote Generator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
- <link rel="icon" href="./favicon/favicon.ico?v=1" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="./favicon/favicon-32x32.png?v=1">
-<link rel="icon" type="image/png" sizes="16x16" href="./favicon/favicon-16x16.png?v=1">
-<link rel="apple-touch-icon" href="./favicon/favicon-180x180.png?v=1">
-
   <style>
     :root {
+      /* Button yellow */
       --btn-gold: #f4c542;
+
+      /* Label color (Wehmut) */
       --thumb-blue: #4da3ff;
+
+      /* Slider fill/thumb matches "Wehmut" */
       --slider-fill: var(--thumb-blue);
 
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -23,14 +23,14 @@
     }
 
     @font-face {
-      font-family: "Asphalt Scratch";
-      src: url("./fonts/AsphaltScratch.woff2") format("woff2");
+      font-family: "Manic Depressive";
+      src: url("./fonts/ManicDepressive.woff2") format("woff2");
       font-display: swap;
     }
 
     @font-face {
-      font-family: "They Perished";
-      src: url("./fonts/TheyPerished.woff2") format("woff2");
+      font-family: "Leander";
+      src: url("./fonts/Leander.woff2") format("woff2");
       font-display: swap;
     }
 
@@ -92,6 +92,7 @@
       white-space: nowrap;
     }
 
+    /* Filled track reflects current value in "Wehmut" color */
     input[type="range"] {
       width: 100%;
       accent-color: var(--slider-fill);
@@ -100,6 +101,7 @@
       --range-progress: 40%;
     }
 
+    /* WebKit */
     input[type="range"]::-webkit-slider-runnable-track {
       height: 6px;
       border-radius: 999px;
@@ -122,6 +124,7 @@
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
     }
 
+    /* Firefox */
     input[type="range"]::-moz-range-track {
       height: 6px;
       border-radius: 999px;
@@ -177,8 +180,13 @@
       padding: 0.62rem 1.25rem;
     }
 
-    #generateBtn:hover { background: #ffd95c; }
-    #copyBtn:hover { background: #444; }
+    #generateBtn:hover {
+      background: #ffd95c;
+    }
+
+    #copyBtn:hover {
+      background: #444;
+    }
 
     .quoteCard {
       margin: 1.2rem auto;
@@ -227,6 +235,7 @@
       font-family: inherit;
     }
 
+    /* Website label in lower-right */
     .siteMark {
       position: absolute;
       right: 14px;
@@ -248,7 +257,9 @@
       min-height: 1em;
     }
 
-    canvas { display: none; }
+    canvas {
+      display: none;
+    }
   </style>
 </head>
 
@@ -288,473 +299,487 @@
   </main>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const SITE_LABEL = "thinkyfun.github.io/HerzogQuoteGenerator/";
+    /* ----------------------------
+       Config
+    ---------------------------- */
+    const SITE_LABEL = "giandeau.github.io/HerzogQuoteGenerator/";
 
-      const imageUrls = [
-        "./images/Image1.png",
-        "./images/Image2.png",
-        "./images/Image3.png",
-        "./images/Image4.png",
-        "./images/Image5.png",
-        "./images/Image6.png",
-        "./images/Image7.png",
-        "./images/Image8.png",
-        "./images/Image9.png",
-        "./images/Image10.png"
-      ];
+    /* ----------------------------
+       Assets
+    ---------------------------- */
+    const imageUrls = [
+      "./images/Image1.png",
+      "./images/Image2.png",
+      "./images/Image3.png",
+      "./images/Image4.png",
+      "./images/Image5.png",
+      "./images/Image6.png",
+      "./images/Image7.png",
+      "./images/Image8.png",
+      "./images/Image9.png",
+      "./images/Image10.png"
+    ];
 
-      imageUrls.forEach(u => { const i = new Image(); i.src = u; });
+    imageUrls.forEach(u => { const i = new Image(); i.src = u; });
 
-      const fontChoices = ["Special Elite", "They Perished", "Asphalt Scratch"];
+    const fontChoices = ["Special Elite", "Leander", "Manic Depressive"];
 
-      function setSliderProgress(sliderEl) {
-        const min = Number(sliderEl.min || 0);
-        const max = Number(sliderEl.max || 100);
-        const val = Number(sliderEl.value);
-        const pct = ((val - min) / (max - min)) * 100;
-        sliderEl.style.setProperty("--range-progress", `${pct}%`);
+    /* ----------------------------
+       Slider fill handling
+    ---------------------------- */
+    function setSliderProgress(sliderEl) {
+      const min = Number(sliderEl.min || 0);
+      const max = Number(sliderEl.max || 100);
+      const val = Number(sliderEl.value);
+      const pct = ((val - min) / (max - min)) * 100;
+      sliderEl.style.setProperty("--range-progress", `${pct}%`);
+    }
+
+    /* ----------------------------
+       Phrase pools
+    ---------------------------- */
+    const openings = [
+      "Consider",
+      "Observe",
+      "Notice",
+      "Witness",
+      "Do not look away from",
+      "Briefly,",
+      "In the silence,",
+      "Look closely,",
+      "Here we see",
+      "For a moment,",
+      "Inevitable,"
+    ];
+
+    const subjects = [
+      "an empty street,",
+      "this abandoned chair,",
+      "the flickering light,",
+      "a weary animal,",
+      "the cold ground,",
+      "discarded potential,",
+      "chaos and darkness,",
+      "a forgotten object,",
+      "the unmoving landscape,",
+      "the unattended doorway,",
+      "a dim corridor,"
+    ];
+
+    const observations = [
+      "a plain fact of passing time,",
+      "a quiet hint of decay,",
+      "it does not show truth,",
+      "a witness to slow collapse,",
+      "a dinosaur that does not know it is dead,",
+      "a monument to indifference,",
+      "an echo of wasted effort,",
+      "like an ancient Greek tragedy,",
+      "a ledger of small defeats,"
+    ];
+
+    const shortEndings = [
+      "and it asks nothing of us.",
+      "and it does not change because we notice.",
+      "yet we are left with only the fact of it.",
+      "so the day continues without explanation.",
+      "and it remains, quietly, what it is.",
+      "and no meaning arrives to meet it."
+    ];
+
+    const endings = [
+      "and we move on, pretending it meant something.",
+      "yet the world does not respond, not even with contempt.",
+      "as time continues without concern for our explanations.",
+      "so meaning dissolves, leaving only the habit of belief.",
+      "while the universe remains unmoved by our brief insistence.",
+      "and still we call this endurance, as if it were a virtue."
+    ];
+
+    /* ----------------------------
+       Non-repetition (recent history)
+    ---------------------------- */
+    const history = {
+      openings: [],
+      subjects: [],
+      observations: [],
+      shortEndings: [],
+      endings: [],
+      bgUrl: [],
+      font: []
+    };
+
+    function pushHistory(key, value, maxLen) {
+      if (!value) return;
+      history[key].unshift(value);
+      if (history[key].length > maxLen) history[key].length = maxLen;
+    }
+
+    const randomFrom = arr => arr[Math.floor(Math.random() * arr.length)];
+
+    function pickNonRepeating(arr, recentKey, avoidCount, maxTries = 60) {
+      if (!arr.length) return "";
+      const avoid = new Set(history[recentKey].slice(0, avoidCount));
+      for (let i = 0; i < maxTries; i++) {
+        const candidate = randomFrom(arr);
+        if (!avoid.has(candidate)) return candidate;
+      }
+      return randomFrom(arr);
+    }
+
+    function pickWeightedNonRepeating(arr, scale, recentKey, avoidCount) {
+      const pivot = Math.floor(arr.length * (scale / 10));
+      const spread = 2;
+      const min = Math.max(0, pivot - spread);
+      const max = Math.min(arr.length - 1, pivot + spread);
+      const windowArr = arr.slice(min, max + 1);
+      return pickNonRepeating(windowArr, recentKey, avoidCount);
+    }
+
+    /* ----------------------------
+       Consecutive quote repetition rule
+    ---------------------------- */
+    let lastParts = null;
+
+    function repeatedPartCount(a, b) {
+      if (!a || !b) return 0;
+      const fields = ["o", "s", "obs", "e"];
+      let count = 0;
+      for (const f of fields) {
+        const av = (a[f] || "").trim();
+        const bv = (b[f] || "").trim();
+        if (av && bv && av === bv) count++;
+      }
+      return count;
+    }
+
+    const singleWordOpenings = new Set(["Consider", "Observe", "Notice", "Witness"]);
+    let lastOpeningWasSingle = false;
+
+    function pickOpening() {
+      let o = pickNonRepeating(openings, "openings", 4);
+
+      if (lastOpeningWasSingle) {
+        for (let i = 0; i < 20; i++) {
+          const candidate = pickNonRepeating(openings, "openings", 4);
+          if (!singleWordOpenings.has(candidate)) { o = candidate; break; }
+        }
       }
 
-      const openings = [
-        "Consider",
-        "Observe",
-        "Notice",
-        "Witness",
-        "Do not look away from",
-        "Briefly,",
-        "In the silence,",
-        "Look closely,",
-        "Here we see",
-        "Surrounded by worn-out images,",
-        "Dream of",
-        "Imagine",
-        "For a moment,",
-        "Inevitable,"
-      ];
+      lastOpeningWasSingle = singleWordOpenings.has(o);
+      return o;
+    }
 
-      const subjects = [
-        "an empty street,",
-        "this abandoned chair,",
-        "the flickering light,",
-        "a weary animal,",
-        "the cold ground,",
-        "discarded potential,",
-        "chaos and darkness,",
-        "the ever-receding horizon,",
-        "a forgotten object,",
-        "violent ennui,",
-        "the unmoving landscape,",
-        "the unattended doorway,",
-        "a lost child,",
-        "a dim corridor,"
-      ];
+    function buildQuoteOnce(scale) {
+      const o = pickOpening();
+      const s = pickWeightedNonRepeating(subjects, scale, "subjects", 3);
 
-      const observations = [
-        "a plain fact of passing time,",
-        "a quiet hint of decay,",
-        "it does not show truth,",
-        "a witness to slow collapse,",
-        "dense, harsh, and ephemeral,"
-        "rising from the gutter, from the carnival, from the brothel,",
-        "a dinosaur that does not know it is dead,",
-        "a monument to indifference,",
-        "an undeniable reality,",
-        "climbing from the abyss,",
-        "a thin layer of ice upon a deep ocean of chaos and darkness,",
-        "teetering on the edge of oblivion,",
-        "an echo of wasted effort,",
-        "like an ancient Greek tragedy,",
-        "a caveman with a machine gun,",
-        "a ledger of small defeats,"
-      ];
+      if (scale <= 2) {
+        const e = pickWeightedNonRepeating(shortEndings, scale, "shortEndings", 3);
+        return { quote: [o, s, e].join(" "), parts: { o, s, obs: "", e }, tier: "short" };
+      }
 
-      const shortEndings = [
-        "and it asks nothing of us.",
-        "and it does not change because we notice.",
-        "yet we are left with only the fact of it.",
-        "and it is suffocating.",
-        "but we must carry on with dignity.",
-        "while indifferent time lurches on.",
-        "like sleep without dreams.",
-        "while the day continues without explanation.",
-        "and it remains, quietly, what it is.",
-        "and no meaning arrives to meet it."
-      ];
+      const obs = pickWeightedNonRepeating(observations, scale, "observations", 3);
 
-      const endings = [
-        "and we move on, pretending it meant something.",
-        "yet the world does not respond, not even with contempt.",
-        "as time continues without concern for our explanations.",
-        "monstrously indifferent to the presence of man.",
-        "overwhelming, obscene, and it wants to kill you.",
-        "so meaning dissolves, leaving only the habit of belief.",
-        "while the universe remains unmoved by our brief insistence.",
-        "and still we call this, “endurance,” as if it were a virtue."
-      ];
+      if (scale <= 6) {
+        const e = pickWeightedNonRepeating(shortEndings, scale, "shortEndings", 3);
+        return { quote: [o, s, obs, e].join(" "), parts: { o, s, obs, e }, tier: "medium" };
+      }
 
-      const history = {
-        openings: [], subjects: [], observations: [],
-        shortEndings: [], endings: [], bgUrl: [], font: []
+      const e = pickWeightedNonRepeating(endings, scale, "endings", 3);
+      return { quote: [o, s, obs, e].join(" "), parts: { o, s, obs, e }, tier: "long" };
+    }
+
+    function buildQuote(scale) {
+      const maxAttempts = 30;
+      for (let i = 0; i < maxAttempts; i++) {
+        const built = buildQuoteOnce(scale);
+        if (!lastParts) return built;
+        if (repeatedPartCount(built.parts, lastParts) <= 2) return built;
+      }
+      return buildQuoteOnce(scale);
+    }
+
+    /* ----------------------------
+       State + render
+    ---------------------------- */
+    const state = { quote: "", bgUrl: "", font: "" };
+
+    function applyQuoteCard() {
+      const card = document.getElementById("quoteCard");
+      const text = document.getElementById("quoteText");
+      const siteMark = document.getElementById("siteMark");
+
+      card.style.backgroundImage = `url("${state.bgUrl}")`;
+      text.style.fontFamily = `"${state.font}", system-ui, sans-serif`;
+      text.textContent = state.quote;
+
+      siteMark.textContent = SITE_LABEL;
+
+      document.getElementById("copyStatus").textContent = "";
+    }
+
+    function getInnerBox(el) {
+      const cs = getComputedStyle(el);
+      const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+      const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+      return { w: el.clientWidth - padX, h: el.clientHeight - padY };
+    }
+
+    function fitQuoteTextToCard() {
+      const wrapper = document.querySelector(".quoteText");
+      const textEl = document.getElementById("quoteText");
+      const { w: maxW, h: maxH } = getInnerBox(wrapper);
+      if (maxW <= 0 || maxH <= 0) return;
+
+      textEl.style.maxWidth = maxW + "px";
+
+      let lo = 18, hi = 84, best = lo;
+      const fits = (size) => {
+        textEl.style.fontSize = size + "px";
+        return textEl.scrollWidth <= maxW + 1 && textEl.scrollHeight <= maxH + 1;
       };
 
-      function pushHistory(key, value, maxLen) {
-        if (!value) return;
-        history[key].unshift(value);
-        if (history[key].length > maxLen) history[key].length = maxLen;
+      if (fits(hi)) { textEl.style.fontSize = hi + "px"; return; }
+
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        if (fits(mid)) { best = mid; lo = mid + 1; }
+        else { hi = mid - 1; }
       }
+      textEl.style.fontSize = best + "px";
+    }
 
-      const randomFrom = arr => arr[Math.floor(Math.random() * arr.length)];
+    async function generate() {
+      const scaleEl = document.getElementById("herzogScale");
+      const scale = Number(scaleEl.value);
+      setSliderProgress(scaleEl);
 
-      function pickNonRepeating(arr, recentKey, avoidCount, maxTries = 60) {
-        if (!arr.length) return "";
-        const avoid = new Set(history[recentKey].slice(0, avoidCount));
-        for (let i = 0; i < maxTries; i++) {
-          const candidate = randomFrom(arr);
-          if (!avoid.has(candidate)) return candidate;
+      const built = buildQuote(scale);
+      state.quote = built.quote;
+
+      state.bgUrl = pickNonRepeating(imageUrls, "bgUrl", 2);
+      state.font = pickNonRepeating(fontChoices, "font", 2);
+
+      try { await document.fonts.load(`48px "${state.font}"`); } catch { }
+
+      applyQuoteCard();
+      requestAnimationFrame(() => fitQuoteTextToCard());
+
+      pushHistory("openings", built.parts.o, 10);
+      pushHistory("subjects", built.parts.s, 6);
+      if (built.parts.obs) pushHistory("observations", built.parts.obs, 6);
+
+      if (built.tier === "long") pushHistory("endings", built.parts.e, 6);
+      else pushHistory("shortEndings", built.parts.e, 6);
+
+      pushHistory("bgUrl", state.bgUrl, 4);
+      pushHistory("font", state.font, 4);
+
+      lastParts = { ...built.parts };
+    }
+
+    /* ----------------------------
+       Canvas export (copy/share)
+    ---------------------------- */
+    function loadImage(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    function drawCover(ctx, img, w, h) {
+      const iw = img.naturalWidth || img.width;
+      const ih = img.naturalHeight || img.height;
+      const s = Math.max(w / iw, h / ih);
+      const sw = iw * s, sh = ih * s;
+      const sx = (w - sw) / 2, sy = (h - sh) / 2;
+      ctx.drawImage(img, sx, sy, sw, sh);
+    }
+
+    function wrapLines(ctx, text, maxWidth) {
+      const words = text.split(/\s+/);
+      const lines = [];
+      let line = "";
+      for (const word of words) {
+        const test = line ? (line + " " + word) : word;
+        if (ctx.measureText(test).width <= maxWidth) line = test;
+        else {
+          if (line) lines.push(line);
+          line = word;
         }
-        return randomFrom(arr);
       }
+      if (line) lines.push(line);
+      return lines;
+    }
 
-      function pickWeightedNonRepeating(arr, scale, recentKey, avoidCount) {
-        const pivot = Math.floor(arr.length * (scale / 10));
-        const spread = 2;
-        const min = Math.max(0, pivot - spread);
-        const max = Math.min(arr.length - 1, pivot + spread);
-        const windowArr = arr.slice(min, max + 1);
-        return pickNonRepeating(windowArr, recentKey, avoidCount);
-      }
+    function drawSiteMark(ctx, W, H) {
+      const pad = Math.round(W * 0.018);
+      const fontSize = Math.max(18, Math.round(W * 0.014));
 
-      let lastParts = null;
+      ctx.save();
+      ctx.textAlign = "right";
+      ctx.textBaseline = "alphabetic";
+      ctx.font = `600 ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
 
-      function repeatedPartCount(a, b) {
-        if (!a || !b) return 0;
-        const fields = ["o", "s", "obs", "e"];
-        let count = 0;
-        for (const f of fields) {
-          const av = (a[f] || "").trim();
-          const bv = (b[f] || "").trim();
-          if (av && bv && av === bv) count++;
-        }
-        return count;
-      }
+      ctx.shadowColor = "rgba(0,0,0,0.85)";
+      ctx.shadowBlur = 18;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 3;
 
-      const singleWordOpenings = new Set(["Consider", "Observe", "Notice", "Witness"]);
-      let lastOpeningWasSingle = false;
+      ctx.fillStyle = "rgba(255,255,255,0.78)";
+      ctx.fillText(SITE_LABEL, W - pad, H - pad);
 
-      function pickOpening() {
-        let o = pickNonRepeating(openings, "openings", 4);
-        if (lastOpeningWasSingle) {
-          for (let i = 0; i < 20; i++) {
-            const candidate = pickNonRepeating(openings, "openings", 4);
-            if (!singleWordOpenings.has(candidate)) { o = candidate; break; }
-          }
-        }
-        lastOpeningWasSingle = singleWordOpenings.has(o);
-        return o;
-      }
+      ctx.restore();
+    }
 
-      function buildQuoteOnce(scale) {
-        const o = pickOpening();
-        const s = pickWeightedNonRepeating(subjects, scale, "subjects", 3);
+    async function renderQuoteToCanvas() {
+      const canvas = document.getElementById("renderCanvas");
+      const ctx = canvas.getContext("2d");
+      const W = canvas.width, H = canvas.height;
 
-        if (scale <= 2) {
-          const e = pickWeightedNonRepeating(shortEndings, scale, "shortEndings", 3);
-          return { quote: [o, s, e].join(" "), parts: { o, s, obs: "", e }, tier: "short" };
-        }
+      ctx.clearRect(0, 0, W, H);
 
-        const obs = pickWeightedNonRepeating(observations, scale, "observations", 3);
+      const bg = await loadImage(state.bgUrl);
+      drawCover(ctx, bg, W, H);
 
-        if (scale <= 6) {
-          const e = pickWeightedNonRepeating(shortEndings, scale, "shortEndings", 3);
-          return { quote: [o, s, obs, e].join(" "), parts: { o, s, obs, e }, tier: "medium" };
-        }
+      const grd = ctx.createRadialGradient(W * 0.30, H * 0.30, 10, W * 0.30, H * 0.30, Math.max(W, H));
+      grd.addColorStop(0, "rgba(0,0,0,0.25)");
+      grd.addColorStop(1, "rgba(0,0,0,0.78)");
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, W, H);
 
-        const e = pickWeightedNonRepeating(endings, scale, "endings", 3);
-        return { quote: [o, s, obs, e].join(" "), parts: { o, s, obs, e }, tier: "long" };
-      }
+      const padX = Math.round(W * 0.065);
+      const padY = Math.round(H * 0.125);
+      const maxTextWidth = W - padX * 2;
+      const maxTextHeight = H - padY * 2;
 
-      function buildQuote(scale) {
-        const maxAttempts = 30;
-        for (let i = 0; i < maxAttempts; i++) {
-          const built = buildQuoteOnce(scale);
-          if (!lastParts) return built;
-          if (repeatedPartCount(built.parts, lastParts) <= 2) return built;
-        }
-        return buildQuoteOnce(scale);
-      }
+      let fontSize = 84;
+      const minFont = 24;
 
-      const state = { quote: "", bgUrl: "", font: "" };
+      try { await document.fonts.load(`${fontSize}px "${state.font}"`); } catch { }
 
-      function applyQuoteCard() {
-        const card = document.getElementById("quoteCard");
-        const text = document.getElementById("quoteText");
-        const siteMark = document.getElementById("siteMark");
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
 
-        card.style.backgroundImage = `url("${state.bgUrl}")`;
-        text.style.fontFamily = `"${state.font}", system-ui, sans-serif`;
-        text.textContent = state.quote;
-
-        siteMark.textContent = SITE_LABEL;
-
-        document.getElementById("copyStatus").textContent = "";
-      }
-
-      function getInnerBox(el) {
-        const cs = getComputedStyle(el);
-        const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-        const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-        return { w: el.clientWidth - padX, h: el.clientHeight - padY };
-      }
-
-      function fitQuoteTextToCard() {
-        const wrapper = document.querySelector(".quoteText");
-        const textEl = document.getElementById("quoteText");
-        const { w: maxW, h: maxH } = getInnerBox(wrapper);
-        if (maxW <= 0 || maxH <= 0) return;
-
-        textEl.style.maxWidth = maxW + "px";
-
-        let lo = 18, hi = 84, best = lo;
-        const fits = (size) => {
-          textEl.style.fontSize = size + "px";
-          return textEl.scrollWidth <= maxW + 1 && textEl.scrollHeight <= maxH + 1;
-        };
-
-        if (fits(hi)) { textEl.style.fontSize = hi + "px"; return; }
-
-        while (lo <= hi) {
-          const mid = (lo + hi) >> 1;
-          if (fits(mid)) { best = mid; lo = mid + 1; }
-          else { hi = mid - 1; }
-        }
-        textEl.style.fontSize = best + "px";
-      }
-
-      async function generate() {
-        const scaleEl = document.getElementById("herzogScale");
-        const scale = Number(scaleEl.value);
-        setSliderProgress(scaleEl);
-
-        const built = buildQuote(scale);
-        state.quote = built.quote;
-
-        state.bgUrl = pickNonRepeating(imageUrls, "bgUrl", 2);
-        state.font = pickNonRepeating(fontChoices, "font", 2);
-
-        try { await document.fonts.load(`48px "${state.font}"`); } catch { }
-
-        applyQuoteCard();
-        requestAnimationFrame(() => fitQuoteTextToCard());
-
-        pushHistory("openings", built.parts.o, 10);
-        pushHistory("subjects", built.parts.s, 6);
-        if (built.parts.obs) pushHistory("observations", built.parts.obs, 6);
-
-        if (built.tier === "long") pushHistory("endings", built.parts.e, 6);
-        else pushHistory("shortEndings", built.parts.e, 6);
-
-        pushHistory("bgUrl", state.bgUrl, 4);
-        pushHistory("font", state.font, 4);
-
-        lastParts = { ...built.parts };
-      }
-
-      // ---- Copy/export functions unchanged from your working version ----
-      function loadImage(url) {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          img.onload = () => resolve(img);
-          img.onerror = reject;
-          img.src = url;
-        });
-      }
-
-      function drawCover(ctx, img, w, h) {
-        const iw = img.naturalWidth || img.width;
-        const ih = img.naturalHeight || img.height;
-        const s = Math.max(w / iw, h / ih);
-        const sw = iw * s, sh = ih * s;
-        const sx = (w - sw) / 2, sy = (h - sh) / 2;
-        ctx.drawImage(img, sx, sy, sw, sh);
-      }
-
-      function wrapLines(ctx, text, maxWidth) {
-        const words = text.split(/\s+/);
-        const lines = [];
-        let line = "";
-        for (const word of words) {
-          const test = line ? (line + " " + word) : word;
-          if (ctx.measureText(test).width <= maxWidth) line = test;
-          else {
-            if (line) lines.push(line);
-            line = word;
-          }
-        }
-        if (line) lines.push(line);
-        return lines;
-      }
-
-      function drawSiteMark(ctx, W, H) {
-        const pad = Math.round(W * 0.018);
-        const fontSize = Math.max(18, Math.round(W * 0.014));
-
-        ctx.save();
-        ctx.textAlign = "right";
-        ctx.textBaseline = "alphabetic";
-        ctx.font = `600 ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
-
-        ctx.shadowColor = "rgba(0,0,0,0.85)";
-        ctx.shadowBlur = 18;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 3;
-
-        ctx.fillStyle = "rgba(255,255,255,0.78)";
-        ctx.fillText(SITE_LABEL, W - pad, H - pad);
-        ctx.restore();
-      }
-
-      async function renderQuoteToCanvas() {
-        const canvas = document.getElementById("renderCanvas");
-        const ctx = canvas.getContext("2d");
-        const W = canvas.width, H = canvas.height;
-
-        ctx.clearRect(0, 0, W, H);
-
-        const bg = await loadImage(state.bgUrl);
-        drawCover(ctx, bg, W, H);
-
-        const grd = ctx.createRadialGradient(W * 0.30, H * 0.30, 10, W * 0.30, H * 0.30, Math.max(W, H));
-        grd.addColorStop(0, "rgba(0,0,0,0.25)");
-        grd.addColorStop(1, "rgba(0,0,0,0.78)");
-        ctx.fillStyle = grd;
-        ctx.fillRect(0, 0, W, H);
-
-        const padX = Math.round(W * 0.065);
-        const padY = Math.round(H * 0.125);
-        const maxTextWidth = W - padX * 2;
-        const maxTextHeight = H - padY * 2;
-
-        let fontSize = 84;
-        const minFont = 24;
-
-        try { await document.fonts.load(`${fontSize}px "${state.font}"`); } catch { }
-
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        const fits = (size) => {
-          ctx.font = `700 ${size}px "${state.font}", system-ui, sans-serif`;
-          const lines = wrapLines(ctx, state.quote, maxTextWidth);
-          const lineHeight = Math.round(size * 1.15);
-          return (lines.length * lineHeight) <= maxTextHeight;
-        };
-
-        while (fontSize > minFont && !fits(fontSize)) fontSize -= 2;
-
-        ctx.font = `700 ${fontSize}px "${state.font}", system-ui, sans-serif`;
+      const fits = (size) => {
+        ctx.font = `700 ${size}px "${state.font}", system-ui, sans-serif`;
         const lines = wrapLines(ctx, state.quote, maxTextWidth);
-        const lineHeight = Math.round(fontSize * 1.15);
-        const totalHeight = lines.length * lineHeight;
+        const lineHeight = Math.round(size * 1.15);
+        return (lines.length * lineHeight) <= maxTextHeight;
+      };
 
-        ctx.shadowColor = "rgba(0,0,0,0.85)";
-        ctx.shadowBlur = 18;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 3;
+      while (fontSize > minFont && !fits(fontSize)) fontSize -= 2;
 
-        ctx.fillStyle = "#f2f2f2";
+      ctx.font = `700 ${fontSize}px "${state.font}", system-ui, sans-serif`;
+      const lines = wrapLines(ctx, state.quote, maxTextWidth);
+      const lineHeight = Math.round(fontSize * 1.15);
+      const totalHeight = lines.length * lineHeight;
 
-        const startY = (H / 2) - (totalHeight / 2) + (lineHeight / 2);
-        for (let i = 0; i < lines.length; i++) {
-          ctx.fillText(lines[i], W / 2, startY + i * lineHeight);
-        }
+      ctx.shadowColor = "rgba(0,0,0,0.85)";
+      ctx.shadowBlur = 18;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 3;
 
-        ctx.shadowColor = "transparent";
-        ctx.shadowBlur = 0;
+      ctx.fillStyle = "#f2f2f2";
 
-        drawSiteMark(ctx, W, H);
-        return canvas;
+      const startY = (H / 2) - (totalHeight / 2) + (lineHeight / 2);
+      for (let i = 0; i < lines.length; i++) {
+        ctx.fillText(lines[i], W / 2, startY + i * lineHeight);
       }
 
-      function downloadBlob(blob, filename) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      }
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
 
-      async function canvasToPngBlob(canvas) {
-        if (canvas.toBlob) {
-          const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 0.92));
-          if (!blob) throw new Error("PNG blob creation failed");
-          return blob;
-        }
-        const dataUrl = canvas.toDataURL("image/png");
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        if (!blob || !blob.size) throw new Error("PNG blob creation failed (fallback)");
+      drawSiteMark(ctx, W, H);
+
+      return canvas;
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function canvasToPngBlob(canvas) {
+      if (canvas.toBlob) {
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 0.92));
+        if (!blob) throw new Error("PNG blob creation failed");
         return blob;
       }
+      const dataUrl = canvas.toDataURL("image/png");
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      if (!blob || !blob.size) throw new Error("PNG blob creation failed (fallback)");
+      return blob;
+    }
 
-      async function copyQuoteImage() {
-        const status = document.getElementById("copyStatus");
-        status.textContent = "";
+    async function copyQuoteImage() {
+      const status = document.getElementById("copyStatus");
+      status.textContent = "";
 
-        let blob;
+      let blob;
+      try {
+        const canvas = await renderQuoteToCanvas();
+        blob = await canvasToPngBlob(canvas);
+      } catch {
+        status.textContent = "Could not export image — try generating again.";
+        setTimeout(() => { status.textContent = ""; }, 2200);
+        return;
+      }
+
+      if (navigator.clipboard && window.ClipboardItem) {
         try {
-          const canvas = await renderQuoteToCanvas();
-          blob = await canvasToPngBlob(canvas);
-        } catch {
-          status.textContent = "Could not export image — try generating again.";
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+          status.textContent = "Copied image to clipboard.";
+          setTimeout(() => { status.textContent = ""; }, 2200);
+          return;
+        } catch { /* fall through */ }
+      }
+
+      try {
+        const file = new File([blob], "herzog-quote.png", { type: "image/png" });
+        if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+          await navigator.share({ files: [file], title: "Herzog-ish Oracle" });
+          status.textContent = "Opened share sheet.";
           setTimeout(() => { status.textContent = ""; }, 2200);
           return;
         }
+      } catch { /* fall through */ }
 
-        if (navigator.clipboard && window.ClipboardItem) {
-          try {
-            await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-            status.textContent = "Copied image to clipboard.";
-            setTimeout(() => { status.textContent = ""; }, 2200);
-            return;
-          } catch { /* fall through */ }
-        }
+      downloadBlob(blob, "herzog-quote.png");
+      status.textContent = "Downloaded PNG instead.";
+      setTimeout(() => { status.textContent = ""; }, 2200);
+    }
 
-        try {
-          const file = new File([blob], "herzog-quote.png", { type: "image/png" });
-          if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-            await navigator.share({ files: [file], title: "Herzog-ish Oracle" });
-            status.textContent = "Opened share sheet.";
-            setTimeout(() => { status.textContent = ""; }, 2200);
-            return;
-          }
-        } catch { /* fall through */ }
+    /* ----------------------------
+       Wire up UI
+    ---------------------------- */
+    const scaleEl = document.getElementById("herzogScale");
+    document.getElementById("generateBtn").addEventListener("click", generate);
+    document.getElementById("copyBtn").addEventListener("click", copyQuoteImage);
 
-        downloadBlob(blob, "herzog-quote.png");
-        status.textContent = "Downloaded PNG instead.";
-        setTimeout(() => { status.textContent = ""; }, 2200);
-      }
-
-      // Wire up UI
-      const scaleEl = document.getElementById("herzogScale");
-      document.getElementById("generateBtn").addEventListener("click", generate);
-      document.getElementById("copyBtn").addEventListener("click", copyQuoteImage);
-
-      scaleEl.addEventListener("input", () => {
-        setSliderProgress(scaleEl);
-        generate();
-      });
-
-      window.addEventListener("resize", () => requestAnimationFrame(fitQuoteTextToCard));
-
-      // ✅ Initialize
+    scaleEl.addEventListener("input", () => {
       setSliderProgress(scaleEl);
       generate();
     });
+
+    window.addEventListener("resize", () => requestAnimationFrame(fitQuoteTextToCard));
+
+    setSliderProgress(scaleEl);
+    generate();
   </script>
 </body>
 
